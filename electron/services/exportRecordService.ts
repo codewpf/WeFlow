@@ -1,4 +1,3 @@
-import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 
@@ -19,7 +18,16 @@ class ExportRecordService {
 
   private resolveFilePath(): string {
     if (this.filePath) return this.filePath
-    const userDataPath = app.getPath('userData')
+    let userDataPath = process.env.WEFLOW_USER_DATA_PATH
+    if (!userDataPath) {
+      try {
+        const { app } = require('electron')
+        userDataPath = app?.getPath?.('userData')
+      } catch {}
+    }
+    if (!userDataPath) {
+      userDataPath = process.cwd()
+    }
     fs.mkdirSync(userDataPath, { recursive: true })
     this.filePath = path.join(userDataPath, 'weflow-export-records.json')
     return this.filePath
